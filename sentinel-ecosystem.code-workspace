@@ -1,0 +1,14 @@
+{
+	"folders": [
+        {"path":"."},
+		{
+			"path": "data-pipeline"
+		},
+		{
+			"path": "data-sentinel"
+		}
+	],
+	"settings": {
+		"sqltools.useNodeRuntime": true
+	}
+}

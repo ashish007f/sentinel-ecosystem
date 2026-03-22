@@ -1,0 +1,25 @@
+# Environments
+.env
+.venv/
+__pycache__/
+*.pyc
+.vscode/
+
+# Data & Databases
+*.db
+*.db.wal
+data-pipeline/data/*.csv
+data-pipeline/data/*.db
+
+# Logs
+*.log
+data-pipeline/logs/*.log
+data-sentinel/agent_debug.log
+
+# OS files
+.DS_Store
+
+# ADK internal storage
+.adk/
+session.db
+artifacts/

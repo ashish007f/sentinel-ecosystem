@@ -1,0 +1,15 @@
+[project]
+name = "data-sentinel"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "duckdb>=1.5.0",
+    "google-adk>=1.27.2",
+    "loguru>=0.7.3",
+    "pandas>=3.0.1",
+    "pydantic-settings>=2.13.1",
+    "pyyaml>=6.0.3",
+    "litellm"
+]
