@@ -8,7 +8,7 @@ A robust ELT (Extract, Load, Transform) pipeline designed for observability and 
 -   **Transformation:** 
     -   **Silver Layer:** Deduplicated and typed data with NULL filtering (`silver_users`).
     -   **Gold Layer:** Aggregated metrics by country (`gold_user_metrics`).
--   **Reconciliation:** An internal audit job that compares Bronze vs. Silver vs. Gold to find unexplained data loss.
+-   **Reconciliation:** An internal audit job that compares cource vs. Bronze vs. Silver vs. Gold to find unexplained data loss.
 
 ## 🏃 Running the Pipeline
 

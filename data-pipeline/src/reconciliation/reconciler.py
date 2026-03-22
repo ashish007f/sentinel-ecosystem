@@ -1,17 +1,14 @@
-import duckdb
 import pandas as pd
 from loguru import logger
 from ..config import settings
-from pathlib import Path
-import glob
+from ..repository.base import AbstractRepository
 
 class DataReconciler:
-    def __init__(self, db_path: str = None):
-        self.db_path = db_path or str(settings.DATABASE_PATH)
-        self.conn = duckdb.connect(self.db_path)
+    def __init__(self, repository: AbstractRepository):
+        self.repo = repository
 
     def run_reconciliation_report(self):
-        """Perform a full multi-layer reconciliation and return a summary report."""
+        """Perform a full multi-layer reconciliation using the repository."""
         logger.info("Starting Multi-Layer Data Reconciliation Job...")
         report = {}
 
@@ -21,41 +18,25 @@ class DataReconciler:
             logger.warning("No source CSV files found for reconciliation.")
             report["source_to_bronze"] = "NO_DATA"
         else:
-            # Sum total records in all CSVs (source of truth)
             total_source = sum(len(pd.read_csv(f)) for f in source_csvs)
-            bronze_count = self.conn.execute("SELECT COUNT(*) FROM bronze_users").fetchone()[0]
-            
-            # Since my loader *appends* to bronze in my script (or recreates), 
-            # we need to be careful. Let's assume bronze should be 1:1 with source.
+            bronze_count = self.repo.get_count("bronze_users")
             report["source_count"] = total_source
             report["bronze_count"] = bronze_count
             report["source_to_bronze_diff"] = total_source - bronze_count
 
         # 2. Bronze -> Silver (Applying Business Rules)
-        # Rule 1: Silver drops NULL user_ids.
-        # Rule 2: Silver deduplicates.
-        bronze_metrics = self.conn.execute("""
-            SELECT 
-                COUNT(*) as total,
-                COUNT(DISTINCT user_id) as distinct_ids,
-                COUNT(*) FILTER (WHERE user_id IS NULL) as null_ids
-            FROM bronze_users
-        """).fetchone()
+        silver_count = self.repo.get_count("silver_users")
         
-        silver_count = self.conn.execute("SELECT COUNT(*) FROM silver_users").fetchone()[0]
-        
-        # Better: Silver should match Bronze WHERE user_id IS NOT NULL AND DISTINCT
-        expected_silver_query = "SELECT COUNT(DISTINCT user_id) FROM bronze_users WHERE user_id IS NOT NULL"
-        expected_silver = self.conn.execute(expected_silver_query).fetchone()[0]
+        # Expected Silver = Distinct(Bronze) where user_id is not null
+        expected_silver = self.repo.get_distinct_count("bronze_users", "user_id", filter_condition="user_id IS NOT NULL")
 
         report["silver_count"] = silver_count
         report["expected_silver"] = expected_silver
         report["silver_unexplained_loss"] = expected_silver - silver_count
 
         # 3. Silver -> Gold (Aggregation Check)
-        # Rule: Gold should have a row for every country in Silver.
-        unique_countries_silver = self.conn.execute("SELECT COUNT(DISTINCT country) FROM silver_users").fetchone()[0]
-        gold_country_count = self.conn.execute("SELECT COUNT(*) FROM gold_user_metrics").fetchone()[0]
+        unique_countries_silver = self.repo.get_distinct_count("silver_users", "country")
+        gold_country_count = self.repo.get_count("gold_user_metrics")
         
         report["gold_countries"] = gold_country_count
         report["expected_gold_countries"] = unique_countries_silver
@@ -80,4 +61,4 @@ class DataReconciler:
         logger.info("-" * 40)
 
     def close(self):
-        self.conn.close()
+        pass
