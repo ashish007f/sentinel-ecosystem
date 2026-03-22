@@ -24,7 +24,7 @@ The ecosystem is split into two primary components:
 - Obtain a **Gemini API Key** from [Google AI Studio](https://aistudio.google.com/).
 
 ### 2. Configure Environment
-Create a `.env` file in the root and `data-sentinel/` folders:
+Create a `.env` file in `data-sentinel/` folders:
 ```env
 GEMINI_API_KEY=your_api_key_here
 MODEL_NAME=gemini/gemini-2.5-flash
